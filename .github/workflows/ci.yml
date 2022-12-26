@@ -51,7 +51,7 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: >-
           flyctl deploy
-          --app PayToViewBot
+          --app paytoviewbot
           --config launcher/app/fly.toml
           --image ghcr.io/${{ github.repository }}:${{ github.sha }}
         env:
