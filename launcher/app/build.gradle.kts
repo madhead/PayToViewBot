@@ -11,4 +11,5 @@ dependencies {
     implementation(libs.tgbotapi.behaviour.fsm)
     implementation(libs.tgbotapi.api)
     implementation(libs.ktor.server.netty)
+    implementation(libs.kotlin.process)
 }

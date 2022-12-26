@@ -2,6 +2,7 @@
 kotlin = "1.7.20"
 tgbotapi = "4.2.1"
 ktor = "2.2.1"
+kotlin-process = "1.4.1"
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -13,3 +14,5 @@ tgbotapi-behaviour-fsm = { module = "dev.inmo:tgbotapi.behaviour_builder.fsm", v
 tgbotapi-api = { module = "dev.inmo:tgbotapi.api", version.ref = "tgbotapi" }
 
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+
+kotlin-process = { module = "com.github.pgreze:kotlin-process", version.ref = "kotlin-process" }
