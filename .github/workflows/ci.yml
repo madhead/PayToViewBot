@@ -41,7 +41,7 @@ jobs:
         with:
           images: ${{ github.repository }}
           tags: |
-            type=sha
+            type=sha,prefix=
       - uses: docker/build-push-action@v3
         with:
           context: launcher/app
