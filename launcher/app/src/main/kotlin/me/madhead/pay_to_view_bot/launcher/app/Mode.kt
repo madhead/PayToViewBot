@@ -21,6 +21,7 @@ import dev.inmo.tgbotapi.types.message.content.MediaContent
 import dev.inmo.tgbotapi.types.update.abstracts.Update
 import io.ktor.server.netty.Netty
 import io.ktor.utils.io.streams.asInput
+import java.net.URI
 import kotlin.io.path.inputStream
 import kotlinx.coroutines.flow.first
 import me.madhead.pay_to_view_bot.launcher.app.config.env
@@ -37,8 +38,9 @@ object WEBHOOK : Mode {
         bot.setWebhookInfoAndStartListenWebhooks(
             listenPort = env.port,
             engineFactory = Netty,
+            listenRoute = env.telegramToken,
             setWebhookRequest = SetWebhook(
-                url = env.webhookUrl,
+                url = URI("${env.webhookBaseUrl}/${env.telegramToken}").normalize().toString(),
             ),
             block = bot.behaviour(),
         )

@@ -6,7 +6,7 @@ object env {
 
     val port: Int by lazy { optional.variable("PORT")?.toInt() ?: 5000 }
 
-    val webhookUrl: String by lazy { variable("WEBHOOK_URL") }
+    val webhookBaseUrl: String by lazy { variable("WEBHOOK_BASE_URL") }
 
     private fun variable(name: String): String = System.getenv(name)
         ?: throw IllegalArgumentException("$name environment variable is not set")

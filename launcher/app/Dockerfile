@@ -6,6 +6,4 @@ USER ptvb
 
 ADD --chown=ptvb:ptvb ./build/install/app/ /opt/ptvb/
 
-LABEL maintainer="madhead <siarhei.krukau@gmail.com>"
-
-CMD /opt/ptvb/bin/app
+CMD /opt/ptvb/bin/app webhook

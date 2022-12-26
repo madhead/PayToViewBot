@@ -4,7 +4,6 @@ kill_timeout = 10
 
 [env]
 PORT = "5000"
-MANAGEMENT_PORT = "5001"
 
 [build]
 image = "ghcr.io/madhead/PayToViewBot:latest"
