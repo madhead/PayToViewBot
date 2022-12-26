@@ -1,4 +1,4 @@
-app = "PayToViewBot"
+app = "paytoviewbot"
 kill_signal = "SIGINT"
 kill_timeout = 10
 
@@ -6,7 +6,7 @@ kill_timeout = 10
 PORT = "5000"
 
 [build]
-image = "ghcr.io/madhead/PayToViewBot:latest"
+image = "ghcr.io/madhead/paytoviewbot:latest"
 
 [[services]]
 internal_port = 5000
