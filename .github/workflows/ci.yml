@@ -40,6 +40,8 @@ jobs:
         id: docker-metadata
         with:
           images: ${{ github.repository }}
+          tags: |
+            type=sha
       - uses: docker/build-push-action@v3
         with:
           context: launcher/app
