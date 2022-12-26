@@ -1,4 +1,4 @@
-name: Master
+name: CI
 
 on:
   push:
@@ -13,15 +13,15 @@ jobs:
       url: https://PayToViewBot.fly.dev
     steps:
       - uses: actions/checkout@v3
-#      - uses: madhead/read-java-properties@latest
-#        id: project-version
-#        with:
-#          file: gradle.properties
-#          property: version
-#      - uses: madhead/semver-utils@latest
-#        id: version
-#        with:
-#          version: ${{ steps.project-version.outputs.value }}
+      #      - uses: madhead/read-java-properties@latest
+      #        id: project-version
+      #        with:
+      #          file: gradle.properties
+      #          property: version
+      #      - uses: madhead/semver-utils@latest
+      #        id: version
+      #        with:
+      #          version: ${{ steps.project-version.outputs.value }}
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
@@ -36,12 +36,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v4
+        id: docker-metadata
+        with:
+          images: ${{ github.repository }}
       - uses: docker/build-push-action@v3
         with:
           context: launcher/app
           push: true
-          tags: >
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+          tags: ${{ steps.docker-metadata.outputs.tags }}
+          labels: ${{ steps.docker-metadata.outputs.labels }}
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: >-
           flyctl deploy
