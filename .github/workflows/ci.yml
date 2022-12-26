@@ -53,10 +53,6 @@ jobs:
           flyctl deploy
           --app paytoviewbot
           --config launcher/app/fly.toml
-          --image ghcr.io/${{ github.repository }}:${{ github.sha }}
+          --image ${{ steps.docker-metadata.outputs.tags }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      - uses: madhead/intellij-http-client-action@v0.22
-        with:
-          files: |-
-            launcher/app/src/main/http/setWebhook.http
