@@ -95,7 +95,7 @@ suspend fun TelegramBot.behaviour(): suspend (Update) -> Unit {
                 errorFactory = {
                     SendTextMessage(
                         chatId = state.context,
-                        text = "Send me *a photo* to blur",
+                        text = "Send me *a photo*\\!",
                         parseMode = MarkdownV2,
                         replyToMessageId = it.asMessageUpdate()?.data?.messageId
                     )
@@ -124,19 +124,19 @@ suspend fun TelegramBot.behaviour(): suspend (Update) -> Unit {
 
             // TODO: Blur
             // ffmpeg -i ihar.jpg -vf "boxblur=10" -c:a copy ihar-blurred.jpg
-            process("ffmpeg", "-y", "-i", state.media.toString(), "-vf", "boxblur=$blurSize", "-c:a", "copy", tempFile.toString())
+            // process("ffmpeg", "-y", "-i", state.media.toString(), "-vf", "boxblur=$blurSize", "-c:a", "copy", tempFile.toString())
 
             // TODO: Repond with blurred media
             bot.sendMessage(state.context, "Blurred", MarkdownV2)
 
-            bot.sendPhoto(
-                state.context,
-                MultipartFile(
-                    "blurred.jpg"
-                ) {
-                    tempFile.inputStream().asInput()
-                }
-            )
+            // bot.sendPhoto(
+            //     state.context,
+            //     MultipartFile(
+            //         "blurred.jpg"
+            //     ) {
+            //         tempFile.inputStream().asInput()
+            //     }
+            // )
 
             null
         }
