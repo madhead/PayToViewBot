@@ -18,7 +18,6 @@ import dev.inmo.tgbotapi.requests.webhook.SetWebhook
 import dev.inmo.tgbotapi.types.message.MarkdownV2
 import dev.inmo.tgbotapi.types.message.abstracts.CommonMessage
 import dev.inmo.tgbotapi.types.message.content.MediaContent
-import dev.inmo.tgbotapi.types.update.abstracts.Update
 import io.ktor.server.netty.Netty
 import io.ktor.utils.io.streams.asInput
 import java.net.URI

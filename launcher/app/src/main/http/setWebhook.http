@@ -1,6 +1,0 @@
-POST https://api.telegram.org/bot{{telegram_token}}/setWebhook
-Content-Type: application/json
-
-{
-  "url": "https://{{url}}/{{telegram_token}}"
-}

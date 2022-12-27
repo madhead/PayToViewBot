@@ -1,0 +1,2 @@
+GET https://api.telegram.org/bot{{telegram_token}}/getWebhookInfo
+Content-Type: application/json
