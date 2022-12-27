@@ -1,6 +1,9 @@
 package me.madhead.pay_to_view_bot.launcher.app
 
 import com.github.pgreze.process.process
+import dev.inmo.micro_utils.fsm.common.State
+import dev.inmo.micro_utils.fsm.common.managers.DefaultStatesManager
+import dev.inmo.micro_utils.fsm.common.managers.InMemoryDefaultStatesManagerRepo
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.files.downloadFile
 import dev.inmo.tgbotapi.extensions.api.send.media.sendPhoto
@@ -10,6 +13,7 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviourWithFSM
 import dev.inmo.tgbotapi.extensions.behaviour_builder.expectations.waitMediaMessage
 import dev.inmo.tgbotapi.extensions.behaviour_builder.expectations.waitText
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onCommand
+import dev.inmo.tgbotapi.extensions.utils.asMessageUpdate
 import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.setWebhookInfoAndStartListenWebhooks
 import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.startGettingOfUpdatesByLongPolling
 import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
@@ -18,9 +22,11 @@ import dev.inmo.tgbotapi.requests.webhook.SetWebhook
 import dev.inmo.tgbotapi.types.message.MarkdownV2
 import dev.inmo.tgbotapi.types.message.abstracts.CommonMessage
 import dev.inmo.tgbotapi.types.message.content.MediaContent
+import dev.inmo.tgbotapi.types.update.abstracts.Update
 import io.ktor.server.netty.Netty
 import io.ktor.utils.io.streams.asInput
 import java.net.URI
+import kotlin.io.path.createTempFile
 import kotlin.io.path.inputStream
 import kotlinx.coroutines.flow.first
 import me.madhead.pay_to_view_bot.launcher.app.config.env
@@ -34,6 +40,8 @@ sealed interface Mode {
 
 object WEBHOOK : Mode {
     override suspend fun start(bot: TelegramBot) {
+        val block = bot.behaviour()
+
         bot.setWebhookInfoAndStartListenWebhooks(
             listenPort = env.port,
             engineFactory = Netty,
@@ -41,7 +49,7 @@ object WEBHOOK : Mode {
             setWebhookRequest = SetWebhook(
                 url = URI("${env.webhookBaseUrl}/${env.telegramToken}").normalize().toString(),
             ),
-            block = bot.behaviour(),
+            block = block,
         )
     }
 }
@@ -53,8 +61,26 @@ object LONG_POLLING : Mode {
     }
 }
 
+val statesManagerRepo = InMemoryDefaultStatesManagerRepo<State>()
+val statesManager = DefaultStatesManager(
+    repo = statesManagerRepo,
+    onStartContextsConflictResolver = { currentState, newState ->
+        println("Current state: $currentState (${System.identityHashCode(currentState)})")
+        println("New state: $newState (${System.identityHashCode(currentState)})")
+
+        true
+    },
+    onUpdateContextsConflictResolver = { oldState, newState, currentNewState ->
+        println("Old state: $oldState (${System.identityHashCode(oldState)})")
+        println("New state: $newState (${System.identityHashCode(newState)})")
+        println("Current New state: $newState (${System.identityHashCode(currentNewState)})")
+
+        true
+    }
+)
+
 suspend fun TelegramBot.behaviour(): suspend (Update) -> Unit {
-    return this.buildBehaviourWithFSM {
+    return this.buildBehaviourWithFSM(statesManager = statesManager) {
         onCommand("blur") {
             startChain(WaitingForMediaToBlur(it.chat.id))
         }
@@ -64,34 +90,37 @@ suspend fun TelegramBot.behaviour(): suspend (Update) -> Unit {
         }
 
         strictlyOn<WaitingForMediaToBlur> { state ->
-            // TODO: Filter out unsupported media types.
             val mediaToBlurMessage: CommonMessage<MediaContent> = waitMediaMessage(
-                initRequest = SendTextMessage(state.context, "Send me the media to blur", MarkdownV2),
-                errorFactory = { SendTextMessage(state.context, "Send me the *media* to blur", MarkdownV2) },
+                initRequest = SendTextMessage(state.context, "Send me a photo to blur", MarkdownV2),
+                errorFactory = {
+                    SendTextMessage(
+                        chatId = state.context,
+                        text = "Send me *a photo* to blur",
+                        parseMode = MarkdownV2,
+                        replyToMessageId = it.asMessageUpdate()?.data?.messageId
+                    )
+                },
             ).first()
 
-            // TODO: Save the media in a temporary file
             val mediaToBlurContent = mediaToBlurMessage.content
-            val tempFile = kotlin.io.path.createTempFile()
+            val tempFile = createTempFile()
 
             bot.downloadFile(mediaToBlurContent, tempFile.toFile())
-
-            // TODO: Switch to the next state
-            println("Downloaded media to $tempFile")
 
             WaitingForBlurSize(state.context, tempFile)
         }
 
         strictlyOn<WaitingForBlurSize> { state ->
-            // TODO: Proper error handling
             var blurSize: String = waitText(
                 initRequest = SendTextMessage(state.context, "Send me the blur size", MarkdownV2),
                 errorFactory = { SendTextMessage(state.context, "Should be an integer", MarkdownV2) },
             ).first().text
 
-            blurSize = "10"
+            if (blurSize.toIntOrNull() == null) {
+                blurSize = "10"
+            }
 
-            val tempFile = kotlin.io.path.createTempFile(suffix = ".jpg")
+            val tempFile = createTempFile(suffix = ".jpg")
 
             // TODO: Blur
             // ffmpeg -i ihar.jpg -vf "boxblur=10" -c:a copy ihar-blurred.jpg
