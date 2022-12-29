@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.20"
-tgbotapi = "4.2.1"
+tgbotapi = "4.2.4-branch_4.2.4-build1324"
 ktor = "2.2.1"
 kotlin-process = "1.4.1"
 

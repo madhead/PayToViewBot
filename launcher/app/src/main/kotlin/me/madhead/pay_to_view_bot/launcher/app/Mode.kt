@@ -1,12 +1,10 @@
 package me.madhead.pay_to_view_bot.launcher.app
 
-import com.github.pgreze.process.process
 import dev.inmo.micro_utils.fsm.common.State
 import dev.inmo.micro_utils.fsm.common.managers.DefaultStatesManager
 import dev.inmo.micro_utils.fsm.common.managers.InMemoryDefaultStatesManagerRepo
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.files.downloadFile
-import dev.inmo.tgbotapi.extensions.api.send.media.sendPhoto
 import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.api.webhook.deleteWebhook
 import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviourWithFSM
@@ -16,7 +14,6 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onComman
 import dev.inmo.tgbotapi.extensions.utils.asMessageUpdate
 import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.setWebhookInfoAndStartListenWebhooks
 import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.startGettingOfUpdatesByLongPolling
-import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import dev.inmo.tgbotapi.requests.send.SendTextMessage
 import dev.inmo.tgbotapi.requests.webhook.SetWebhook
 import dev.inmo.tgbotapi.types.message.MarkdownV2
@@ -24,15 +21,12 @@ import dev.inmo.tgbotapi.types.message.abstracts.CommonMessage
 import dev.inmo.tgbotapi.types.message.content.MediaContent
 import dev.inmo.tgbotapi.types.update.abstracts.Update
 import io.ktor.server.netty.Netty
-import io.ktor.utils.io.streams.asInput
 import java.net.URI
 import kotlin.io.path.createTempFile
-import kotlin.io.path.inputStream
 import kotlinx.coroutines.flow.first
 import me.madhead.pay_to_view_bot.launcher.app.config.env
 import me.madhead.pay_to_view_bot.launcher.app.state.WaitingForBlurSize
 import me.madhead.pay_to_view_bot.launcher.app.state.WaitingForMediaToBlur
-import me.madhead.pay_to_view_bot.launcher.app.state.WaitingForMediaToMask
 
 sealed interface Mode {
     suspend fun start(bot: TelegramBot)
@@ -65,15 +59,17 @@ val statesManagerRepo = InMemoryDefaultStatesManagerRepo<State>()
 val statesManager = DefaultStatesManager(
     repo = statesManagerRepo,
     onStartContextsConflictResolver = { currentState, newState ->
-        println("Current state: $currentState (${System.identityHashCode(currentState)})")
-        println("New state: $newState (${System.identityHashCode(currentState)})")
+        println("onStartContextsConflictResolver")
+        println("\tCurrent state: $currentState (${System.identityHashCode(currentState)})")
+        println("\tNew state: $newState (${System.identityHashCode(currentState)})")
 
         true
     },
     onUpdateContextsConflictResolver = { oldState, newState, currentNewState ->
-        println("Old state: $oldState (${System.identityHashCode(oldState)})")
-        println("New state: $newState (${System.identityHashCode(newState)})")
-        println("Current New state: $newState (${System.identityHashCode(currentNewState)})")
+        println("onUpdateContextsConflictResolver")
+        println("\tOld state: $oldState (${System.identityHashCode(oldState)})")
+        println("\tNew state: $newState (${System.identityHashCode(newState)})")
+        println("\tCurrent New state: $newState (${System.identityHashCode(currentNewState)})")
 
         true
     }
@@ -83,10 +79,6 @@ suspend fun TelegramBot.behaviour(): suspend (Update) -> Unit {
     return this.buildBehaviourWithFSM(statesManager = statesManager) {
         onCommand("blur") {
             startChain(WaitingForMediaToBlur(it.chat.id))
-        }
-
-        onCommand("pay") {
-            startChain(WaitingForMediaToMask(it.chat.id))
         }
 
         strictlyOn<WaitingForMediaToBlur> { state ->

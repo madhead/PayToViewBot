@@ -5,6 +5,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        maven("https://git.inmo.dev/api/packages/InsanusMokrassar/maven")
     }
 }
 
